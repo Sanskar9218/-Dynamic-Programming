@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/index.css" type="text/css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <title>Document</title>
+
+    <style>
+      li{
+        cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+    <nav class="bg-dark navbar-dark">
+  </nav>
+   <section id="header" class="jumbotron text-center">
+     <h1 class="display-3">My Gallery</h1>
+     <a href="/new" class="btn btn-primary">Add New Image</a>
+</section>
+
+<div class="container mb-5">
+  <div>
+    <form class="form-inline " action="/find" method="POST">
+      <div class="form-group ml-auto">
+        <input type="text" class="form-control" name="imageName" placeholder="Search image by name">
+      </div>
+      <button type="submit" class="btn btn-success mr-auto">Search</button>
+    </form>
+  </div>
+</div>
+  
+<section id="gallery">
+  <div class="container">
+    <div class="row" id="myRow">
+      
+  </div>
+</div>
+</section>
+
+<div class="container">
+  <ul class="pagination pagination-lg justify-content-center" id="paggButton">
+
+  </ul>
+</div>
+
+<script>
+
+
+    let images = [];    //Store the all the image present in database
+    {{#each images}}
+        images.push({
+          id: "{{this._id}}",
+          name: "{{this.imageName}}",
+          url: "{{this.imageUrl}}",
+          detail: "{{this.imageDetail}}"
+        });
+    {{/each}}
+
+    let state = {
+      data: images,
+      totalPage: Math.ceil(images.length/9),
+      items: 9
+    }
+
+    pagginationButton();
+    myFunction(1);
+
+    //Show the paggination button according to available images
+    function pagginationButton()
+    {
+        document.getElementById('paggButton').innerHTML = '';
+        for(let i=1;i<=state.totalPage;i++)
+        {
+            document.getElementById('paggButton').innerHTML += `<li class="page-item"><a class="page-link" onclick="myFunction(${i})">${i}</a></li>`
+        }
+    }
+
+    //Return the trimmed data which according to the page number
+    function pagination(data, page, items)
+    {
+        let myPromise = new Promise((myResolve, myReject) => {
+            let length = data.length;
+            let start = (page-1)*items;
+            let end = start+items;
+
+            let trimData = data.slice(start, end);
+
+            myResolve(trimData);
+        })
+        return myPromise;
+    }
+
+    //Show the 9 image per page according to the page number
+    async function myFunction(currPage)
+    {
+        let parent = document.getElementById('paggButton');
+        for(let i=0;i<parent.childNodes.length;i++)
+        {
+            if(i == currPage-1)
+            {
+               parent.childNodes[i].className = "page-item active";
+            }
+            else{
+                parent.childNodes[i].className = "page-item";
+            }
+        }
+
+        let trimData = await pagination(state.data, currPage, state.items);
+
+        document.getElementById("myRow").innerHTML = '';
+
+        for(let i=0;i<trimData.length;i++)
+        {
+            document.getElementById("myRow").innerHTML += `<div class="col-lg-4 mb-4" >
+                                                              <div class="card h-100" >
+                                                                <a href="/show/${trimData[i].id}">
+                                                                    <img src="${trimData[i].url}" alt="" style="height: 40vh" class="card-img-top img-fluid">
+                                                                </a>
+                                                              </div>
+                                                            </div>`
+        }
+    }
+</script>
+
+</body>
+</html>
